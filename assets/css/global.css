@@ -1,0 +1,328 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Geist:wght@100..900&family=Space+Grotesk:wght@300..700&display=swap');
+
+/* Redesign Base Resets */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+  background-color: var(--bg-darker);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-darker);
+  color: var(--text-primary);
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* Subtle Film Grain Noise Filter Overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-darker);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Focus Rings styling */
+*:focus-visible {
+  outline: 2px solid rgba(var(--accent-rgb), 0.5);
+  outline-offset: 4px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+  position: relative;
+  z-index: 2;
+}
+
+/* Headers Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition-fast);
+  cursor: none; /* Hide standard cursor */
+}
+
+/* Fallback - cursor is normal. JS appends "has-custom-cursor" class to html */
+html.has-custom-cursor,
+html.has-custom-cursor * {
+  cursor: none !important;
+}
+
+/* Revert to native I-beam text cursor while selecting or editing text */
+html.has-custom-cursor.text-selecting,
+html.has-custom-cursor.text-selecting * {
+  cursor: auto !important;
+}
+
+html.has-custom-cursor input,
+html.has-custom-cursor textarea,
+html.has-custom-cursor [contenteditable],
+html.has-custom-cursor input *,
+html.has-custom-cursor textarea * {
+  cursor: auto !important;
+}
+
+
+
+/* Custom Cursor elements using translate3d and pseudo-centering */
+.custom-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 10000;
+  will-change: transform;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  transition: width 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
+              height 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
+              margin-left 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
+              margin-top 0.18s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.18s ease, 
+              background-color 0.18s ease, 
+              border-radius 0.18s ease;
+}
+
+/* Custom Geometric Arrow SVG element */
+.custom-cursor-arrow {
+  width: 22px;
+  height: 22px;
+  fill: var(--color-accent);
+  stroke: var(--bg-darker);
+  stroke-width: 1.5px;
+  stroke-linejoin: round;
+  position: absolute;
+  top: -3px;
+  left: -4px;
+  opacity: 1;
+  transform-origin: top left;
+  transition: opacity 0.15s ease, fill 0.18s ease, transform 0.18s ease;
+}
+
+.custom-cursor .follower-text {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+/* --- State Styles --- */
+
+
+
+/* Text Mode (over form input fields and textareas) */
+.custom-cursor.text-mode {
+  opacity: 0 !important;
+}
+
+/* Hovering over standard links */
+.custom-cursor.hover-link .custom-cursor-arrow {
+  fill: var(--text-primary);
+  transform: scale(1.15);
+}
+
+/* Hovering over buttons (Magnetic Attraction) */
+.custom-cursor.hover-btn .custom-cursor-arrow {
+  fill: var(--color-accent);
+  transform: scale(1.15);
+}
+
+
+
+/* Hovering over Carousel left/right halves */
+.custom-cursor.hover-carousel-left,
+.custom-cursor.hover-carousel-right {
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
+  border-color: var(--color-accent);
+  background-color: transparent;
+  border-radius: 50%;
+}
+
+.custom-cursor.hover-carousel-left .custom-cursor-arrow,
+.custom-cursor.hover-carousel-right .custom-cursor-arrow {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.custom-cursor.hover-carousel-left .follower-text,
+.custom-cursor.hover-carousel-right .follower-text {
+  opacity: 1;
+  color: var(--color-accent);
+  font-size: 0.72rem;
+}
+
+/* Disable Custom Cursor elements when custom cursor is toggled off */
+html.custom-cursor-disabled .custom-cursor {
+  display: none !important;
+}
+
+html.custom-cursor-disabled,
+html.custom-cursor-disabled * {
+  cursor: auto !important;
+}
+
+/* Background Canvas for Interactive Particles */
+#bg-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1; /* Layered between ambient lights and text content */
+}
+
+/* Ambient lighting background shifts */
+.ambient-bg-lights {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  transform: translate3d(calc(var(--bg-x, 0) * -12px), calc(var(--bg-y, 0) * -12px), 0);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ambient-light-1 {
+  position: absolute;
+  top: -10%;
+  right: 10%;
+  width: 650px;
+  height: 650px;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.03) 0%, rgba(var(--accent-rgb), 0) 70%);
+  filter: blur(80px);
+}
+
+.ambient-light-2 {
+  position: absolute;
+  bottom: -10%;
+  left: 5%;
+  width: 750px;
+  height: 750px;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.015) 0%, rgba(var(--accent-rgb), 0) 70%);
+  filter: blur(100px);
+}
+
+/* Blur-reveal scroll entrance styles */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px) scale(0.99);
+  filter: blur(6px);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 1s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform, filter;
+}
+
+.reveal-on-scroll.revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+}
+
+/* Loading skeleton screens */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-darker);
+  z-index: 10100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loading-screen.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loading-logo {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.loading-logo-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-accent);
+  border-radius: 50%;
+  animation: loadingPulse 1s infinite ease-in-out;
+}
+
+@keyframes loadingPulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.4; }
+  50% { transform: scale(1.2); opacity: 1; }
+}
