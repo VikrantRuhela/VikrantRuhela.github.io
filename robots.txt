@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://deskaestheticx.github.io/sitemap.xml
+Sitemap: https://VikrantRuhela.github.io/sitemap.xml
