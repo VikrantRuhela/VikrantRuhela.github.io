@@ -10,7 +10,10 @@ class Subtle3DParticleSphere {
     this.baseRadius = 250; 
     this.radius = this.baseRadius;
     this.focalLength = 380;
-    this.maxParticles = 460; // Optimal density for both structured sphere and ambient background states
+    
+    // Optimize particle count for mobile/touch screens to improve performance and battery life
+    const isMobile = window.innerWidth <= 768 || window.matchMedia('(hover: none)').matches;
+    this.maxParticles = isMobile ? 220 : 460; // Optimal density for both structured sphere and ambient background states
     
     // Eased morph factor (0 = Sphere, 1 = Background)
     this.morphFactor = 0;
@@ -312,10 +315,9 @@ class Subtle3DParticleSphere {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const isTouchOnly = window.matchMedia('(hover: none)').matches;
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  if (isTouchOnly || prefersReducedMotion) {
+  if (prefersReducedMotion) {
     return;
   }
 

@@ -179,6 +179,18 @@ header.scrolled {
   box-shadow: var(--shadow-sm);
   z-index: 2;
   will-change: transform, box-shadow;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--space-xl);
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .studio-card {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+  }
 }
 
 .studio-card:hover {
