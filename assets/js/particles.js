@@ -18,6 +18,11 @@ class Subtle3DParticleSphere {
     // Eased morph factor (0 = Sphere, 1 = Background)
     this.morphFactor = 0;
     
+    // Logo morph parameters
+    this.logoMorphFactor = 0;
+    this.targetLogoMorph = 0;
+    this.logoPoints = [];
+    
     // Tilt angles for parallax effect
     this.tiltX = 0;
     this.tiltY = 0;
@@ -25,6 +30,7 @@ class Subtle3DParticleSphere {
     this.isActive = true;
     this.animationId = null;
 
+    this.loadLogoPoints();
     this.init();
     this.registerEvents();
     this.animate();
@@ -33,6 +39,60 @@ class Subtle3DParticleSphere {
   init() {
     this.resizeCanvas();
     this.createParticles();
+  }
+
+  generateFallbackPoints() {
+    const pts = [];
+    const count = 500;
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      pts.push({
+        x: Math.cos(angle) * 0.35,
+        y: Math.sin(angle) * 0.35
+      });
+    }
+    this.logoPoints = pts;
+  }
+
+  loadLogoPoints() {
+    this.generateFallbackPoints();
+    
+    const img = new Image();
+    img.src = 'assets/images/da-logo-reference.png';
+    img.onload = () => {
+      const offscreen = document.createElement('canvas');
+      const size = 120;
+      offscreen.width = size;
+      offscreen.height = size;
+      const ctx = offscreen.getContext('2d');
+      ctx.drawImage(img, 0, 0, size, size);
+      
+      const imgData = ctx.getImageData(0, 0, size, size);
+      const data = imgData.data;
+      
+      const pts = [];
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const idx = (y * size + x) * 4;
+          const r = data[idx];
+          const g = data[idx+1];
+          const b = data[idx+2];
+          const a = data[idx+3];
+          
+          const isLogoPixel = (r < 220 && g < 220 && b < 220 && a > 50);
+          if (isLogoPixel) {
+            pts.push({
+              x: (x / size) - 0.5,
+              y: (y / size) - 0.5
+            });
+          }
+        }
+      }
+      
+      if (pts.length > 0) {
+        this.logoPoints = pts.sort(() => Math.random() - 0.5);
+      }
+    };
   }
 
   resizeCanvas() {
@@ -121,6 +181,19 @@ class Subtle3DParticleSphere {
       // Subpages without a hero are locked in the background state
       this.morphFactor = 1;
     }
+
+    // 1.5. Update logo morph factor based on community section visibility
+    const community = document.getElementById('community');
+    if (community) {
+      const rect = community.getBoundingClientRect();
+      const viewH = window.innerHeight;
+      const visibleH = Math.max(0, Math.min(rect.bottom, viewH) - Math.max(rect.top, 0));
+      const ratio = visibleH / rect.height;
+      this.targetLogoMorph = (ratio >= 0.6) ? 1 : 0;
+    } else {
+      this.targetLogoMorph = 0;
+    }
+    this.logoMorphFactor += (this.targetLogoMorph - this.logoMorphFactor) * 0.045;
 
     // 2. Update background drift positions with mouse repulsion interaction
     const repulsionRadius = 110;
@@ -231,8 +304,22 @@ class Subtle3DParticleSphere {
       sinTY = Math.sin(this.tiltY);
     }
 
+    // Get logo target positions if available
+    const targetDiv = document.getElementById('da-logo-target');
+    let logoCenterX = 0;
+    let logoCenterY = 0;
+    let logoScale = 0;
+    const hasLogo = !!(targetDiv && this.logoPoints && this.logoPoints.length > 0);
+
+    if (hasLogo) {
+      const rect = targetDiv.getBoundingClientRect();
+      logoCenterX = rect.left + rect.width / 2;
+      logoCenterY = rect.top + rect.height / 2;
+      logoScale = Math.min(rect.width, rect.height) * 0.85;
+    }
+
     // Process interpolation between states
-    const renderList = this.particles.map(p => {
+    const renderList = this.particles.map((p, i) => {
       let xSphScreen = 0;
       let ySphScreen = 0;
       let opacitySph = 0;
@@ -269,19 +356,68 @@ class Subtle3DParticleSphere {
       const sizeBg = p.baseSize * 0.95; 
       const opacityBg = p.baseOpacity * 0.85; // Ambient brightness
 
+      // Logo State values
+      let xLogoScreen = xBgScreen;
+      let yLogoScreen = yBgScreen;
+      const sizeLogo = sizeBg;
+      const opacityLogo = opacityBg;
+
+      if (hasLogo) {
+        const pt = this.logoPoints[i % this.logoPoints.length];
+        const targetX = logoCenterX + pt.x * logoScale;
+        const targetY = logoCenterY + pt.y * logoScale;
+
+        // Micro-animations (Breathing & Noise jitter)
+        const time = performance.now() * 0.001;
+        const seed = p.nx * 20 + p.ny * 20;
+        const breath = Math.sin(time * 1.8 + seed) * 3.0; // 3px organic expansion/contraction
+        const noiseX = Math.sin(time * 3.0 + seed) * 1.5;
+        const noiseY = Math.cos(time * 3.2 + seed) * 1.5;
+
+        const aliveX = targetX + noiseX + breath * (pt.x * 0.12);
+        const aliveY = targetY + noiseY + breath * (pt.y * 0.12);
+
+        // Hover Repulsion Interaction over the Logo
+        let repOffsetX = 0;
+        let repOffsetY = 0;
+        if (this.mouse.x !== -100) {
+          const dx = aliveX - this.mouse.x;
+          const dy = aliveY - this.mouse.y;
+          const dist = Math.hypot(dx, dy);
+          const logoRepulsionRadius = 65;
+
+          if (dist < logoRepulsionRadius) {
+            const force = (logoRepulsionRadius - dist) / logoRepulsionRadius;
+            repOffsetX = (dx / dist) * force * 24;
+            repOffsetY = (dy / dist) * force * 24;
+          }
+        }
+
+        xLogoScreen = aliveX + repOffsetX;
+        yLogoScreen = aliveY + repOffsetY;
+      }
+
+      // First blend Background and Logo states using logoMorphFactor
+      const lm = this.logoMorphFactor;
+      const xBgFinal = xBgScreen + (xLogoScreen - xBgScreen) * lm;
+      const yBgFinal = yBgScreen + (yLogoScreen - yBgScreen) * lm;
+      const sizeBgFinal = sizeBg + (sizeLogo - sizeBg) * lm;
+      const opacityBgFinal = opacityBg + (opacityLogo - opacityBg) * lm;
+
+      // Then blend with Sphere state if active
       let xFinal, yFinal, sizeFinal, opacityFinal;
 
       if (!useSphere) {
-        xFinal = xBgScreen;
-        yFinal = yBgScreen;
-        sizeFinal = sizeBg;
-        opacityFinal = opacityBg;
+        xFinal = xBgFinal;
+        yFinal = yBgFinal;
+        sizeFinal = sizeBgFinal;
+        opacityFinal = opacityBgFinal;
       } else {
         const m = this.morphFactor;
-        xFinal = xSphScreen + (xBgScreen - xSphScreen) * m;
-        yFinal = ySphScreen + (yBgScreen - ySphScreen) * m;
-        sizeFinal = sizeSph + (sizeBg - sizeSph) * m;
-        opacityFinal = opacitySph + (opacityBg - opacitySph) * m;
+        xFinal = xSphScreen + (xBgFinal - xSphScreen) * m;
+        yFinal = ySphScreen + (yBgFinal - ySphScreen) * m;
+        sizeFinal = sizeSph + (sizeBgFinal - sizeSph) * m;
+        opacityFinal = opacitySph + (opacityBgFinal - opacitySph) * m;
       }
 
       return {
