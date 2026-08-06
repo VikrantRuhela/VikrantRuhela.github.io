@@ -61,7 +61,7 @@ class Subtle3DParticleSphere {
     img.src = 'assets/images/da-logo-reference.png';
     img.onload = () => {
       const offscreen = document.createElement('canvas');
-      const size = 200; // Increased resolution for sharper shapes
+      const size = 250; // Increased scanning grid resolution for maximum shape detail
       offscreen.width = size;
       offscreen.height = size;
       const ctx = offscreen.getContext('2d');
@@ -75,20 +75,17 @@ class Subtle3DParticleSphere {
       let minY = Infinity, maxY = -Infinity;
       
       for (let y = 0; y < size; y++) {
-        // Remove the "Desk Aestheticx" text label at the bottom of the image (below 66% height)
-        if (y > size * 0.66) {
+        // Exclude the bottom text label. Vertical pixel density profile shows the monogram ends exactly at 63.5%
+        if (y > size * 0.635) {
           continue;
         }
         
         for (let x = 0; x < size; x++) {
           const idx = (y * size + x) * 4;
-          const r = data[idx];
-          const g = data[idx+1];
-          const b = data[idx+2];
           const a = data[idx+3];
           
-          // Strict thresholds for crisp monogram rendering
-          const isLogoPixel = (r < 180 && g < 180 && b < 180 && a > 100);
+          // Transparent background: any pixel with opacity holds logo curves (dark or white)
+          const isLogoPixel = (a > 30);
           if (isLogoPixel) {
             rawPoints.push({ x, y });
             if (x < minX) minX = x;
