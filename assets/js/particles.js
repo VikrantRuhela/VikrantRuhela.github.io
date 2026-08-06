@@ -61,7 +61,7 @@ class Subtle3DParticleSphere {
     img.src = 'assets/images/da-logo-reference.png';
     img.onload = () => {
       const offscreen = document.createElement('canvas');
-      const size = 120;
+      const size = 200; // Increased resolution for sharper shapes
       offscreen.width = size;
       offscreen.height = size;
       const ctx = offscreen.getContext('2d');
@@ -70,8 +70,16 @@ class Subtle3DParticleSphere {
       const imgData = ctx.getImageData(0, 0, size, size);
       const data = imgData.data;
       
-      const pts = [];
+      const rawPoints = [];
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+      
       for (let y = 0; y < size; y++) {
+        // Remove the "Desk Aestheticx" text label at the bottom of the image (below 66% height)
+        if (y > size * 0.66) {
+          continue;
+        }
+        
         for (let x = 0; x < size; x++) {
           const idx = (y * size + x) * 4;
           const r = data[idx];
@@ -79,17 +87,30 @@ class Subtle3DParticleSphere {
           const b = data[idx+2];
           const a = data[idx+3];
           
-          const isLogoPixel = (r < 220 && g < 220 && b < 220 && a > 50);
+          // Strict thresholds for crisp monogram rendering
+          const isLogoPixel = (r < 180 && g < 180 && b < 180 && a > 100);
           if (isLogoPixel) {
-            pts.push({
-              x: (x / size) - 0.5,
-              y: (y / size) - 0.5
-            });
+            rawPoints.push({ x, y });
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
           }
         }
       }
       
-      if (pts.length > 0) {
+      if (rawPoints.length > 0) {
+        // Calculate center and scale factor relative to the monogram's bounding box
+        const cx = (minX + maxX) / 2;
+        const cy = (minY + maxY) / 2;
+        const maxSpan = Math.max(maxX - minX, maxY - minY);
+        
+        const pts = rawPoints.map(pt => ({
+          x: (pt.x - cx) / maxSpan,
+          y: (pt.y - cy) / maxSpan
+        }));
+        
+        // Shuffle coordinates to enable organic firefly transition paths
         this.logoPoints = pts.sort(() => Math.random() - 0.5);
       }
     };
