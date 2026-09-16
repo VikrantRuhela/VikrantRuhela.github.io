@@ -12,6 +12,16 @@
   --weight-bold: 700;
   --weight-heavy: 800;
 
+  /* Standard Modular Type Scale */
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-md: 1.125rem;    /* 18px */
+  --text-lg: 1.25rem;     /* 20px */
+  --text-xl: 1.5rem;      /* 24px */
+  --text-2xl: 2rem;       /* 32px */
+  --text-3xl: 2.75rem;    /* 44px */
+
   /* Strict Spacing System Grid */
   --space-xxs: 4px;
   --space-xs: 8px;

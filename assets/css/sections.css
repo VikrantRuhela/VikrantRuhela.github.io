@@ -126,8 +126,9 @@
 
 .product-card-tech {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  font-size: var(--text-sm, 0.875rem);
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
 /* Sections details styling */
@@ -395,26 +396,29 @@
 .tech-badges-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-top: var(--space-md);
+  column-gap: 8px;
+  row-gap: 10px;
+  margin-top: var(--space-sm);
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .tech-badge {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 500;
-  padding: var(--space-xxs) var(--space-sm);
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border-color);
+  padding: 5px 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
-  color: var(--text-secondary);
+  color: #e4e4e7;
   transition: var(--transition-fast);
 }
 
 .tech-badge:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
   transform: translateY(-1px);
 }
 
@@ -726,15 +730,52 @@ footer {
   display: flex;
   gap: var(--space-lg);
   list-style: none;
+  align-items: center;
 }
 
 .footer-right a {
-  font-size: 0.8rem;
+  font-size: var(--text-xs, 0.8rem);
   color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+  transition: color var(--transition-fast), text-decoration-color var(--transition-fast);
 }
 
-.footer-right a:hover {
-  color: var(--color-accent);
+.footer-right a:hover,
+.footer-right a:focus-visible {
+  color: var(--text-primary);
+  text-decoration-color: var(--color-accent);
+}
+
+/* Community Section Topic Pills */
+.community-topic-list {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.community-topic-badge {
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--weight-medium, 500);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  user-select: none;
+}
+
+#community .about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: var(--space-xxl);
 }
 
 /* Responsive grid changes */
